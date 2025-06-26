@@ -1,9 +1,10 @@
 const User = require("../models/User");
 const router = require("express").Router();
 const bcrypt = require("bcrypt");
+const {authentication} = require("../middleware/auth")
 
 //update user 
-router.put("/:id", async (req, res) => {
+router.put("/:id",authentication, async (req, res) => {
     if (req.body.userId === req.params.id  || req.body.isAdmin ) {
         if (req.body.password) {
             try{
@@ -22,14 +23,14 @@ router.put("/:id", async (req, res) => {
 
             }
         } else {
-            return res.status(403).json("you can only update your account");
+            return res.status(403).json("You can only update your account");
         }
     }
 });
 
 
 //delete user 
-router.delete("/:id", async (req, res) => {
+router.delete("/:id", authentication, async (req, res) => {
     if (req.body.userId === req.params.id  || req.body.isAdmin ) {
             try{
                
@@ -40,13 +41,13 @@ router.delete("/:id", async (req, res) => {
 
             }
         } else {
-            return res.status(403).json("you can only delete your account");
+            return res.status(403).json("You can only delete your account");
         }
     }
 );
 
 //get a user
-router.get("/:id", async (req,res)=>{
+router.get("/:id",authentication, async (req,res)=>{
       try {
         const user = await User.findById(req.params.id);
         const {password,updatedAt, ...other} = user._doc
@@ -57,7 +58,7 @@ router.get("/:id", async (req,res)=>{
 
 })
 //follow user
-   router.put("/:id/follow",async (req,res)=>{
+   router.put("/:id/follow",authentication,async (req,res)=>{
       if(req.body.userId !== req.params.id){
         try {
             const user = await User.findById(req.params.id);
@@ -65,19 +66,19 @@ router.get("/:id", async (req,res)=>{
             if(!user.followers.includes(req.body.userId)){
                 await user.updateOne({$push:{ followers:req.body.userId}});
                 await currentuser.updateOne({$push:{ followings:req.params.id}});
-                res.status(200).json("user has been followed");
+                res.status(200).json("User has been followed");
             }else{
-                res.status(403).json("you already follow this user");
+                res.status(403).json("You already follow this user");
             }
         } catch (error) {
             res.status(500).json(error);
         }
       } else {
-       res.status(403).json("you cant follow yourself");
+       res.status(403).json("You cant follow yourself");
       }
     })
 //unfollow user
-router.put("/:id/unfollow",async (req,res)=>{
+router.put("/:id/unfollow",authentication,async (req,res)=>{
     if(req.body.userId !== req.params.id){
       try {
           const user = await User.findById(req.params.id);
@@ -85,15 +86,15 @@ router.put("/:id/unfollow",async (req,res)=>{
           if(user.followers.includes(req.body.userId)){
               await user.updateOne({$pull:{ followers:req.body.userId}});
               await currentuser.updateOne({$pull:{ followings:req.params.id}});
-              res.status(200).json("user has been unfollowed");
+              res.status(200).json("User has been unfollowed");
           }else{
-              res.status(403).json("you dont follow this user");
+              res.status(403).json("You dont follow this user");
           }
       } catch (error) {
           res.status(500).json(error);
       }
     } else {
-     res.status(403).json("you cant unfollow yourself");
+     res.status(403).json("You cant unfollow yourself");
     }
 
 });
