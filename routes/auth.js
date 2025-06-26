@@ -43,9 +43,25 @@ router.post("/login", async (req, res) => {
       path: "/",
       secure: false,
       maxAge: 7 * 24 * 60 * 60 * 1000,
-    });
+    }).json(user);
 
-    res.status(200).json(user);
+  } catch (err) {
+    res.status(500).json(err);
+  }
+});
+
+
+
+router.post("/logout", async (req, res) => {
+  try {
+   
+    res.status(200).clearCookie("smCookies",  {
+      httpOnly: true,
+      path: "/",
+      secure: false,
+      maxAge:0,
+    }).json({message:"logout"})
+
   } catch (err) {
     res.status(500).json(err);
   }
